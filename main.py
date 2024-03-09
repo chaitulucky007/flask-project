@@ -1,7 +1,7 @@
 from datetime import datetime
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_mail import Mail, Message
 # flask has templates and static folder structure
 # inside templates index.html file and images, css, jscript files in static
 # now create app instance with Flask class
@@ -11,8 +11,15 @@ app.config["SECRET_KEY"] = "myapplication123"
 # this is a dictionary, it is a secret key which protect from hackers etc
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data.db"
 # this is the db name and db type (sqlite) used to create
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USE_SSL"] = True
+app.config["MAIL_USERNAME"] = "chaitulucky003@gmail.com"
+app.config["MAIL_PASSWORD"] = "nakw qdro fjim xojj"
+
 db = SQLAlchemy(app)
 
+mail = Mail(app)
 
 # create a database, to create it we need a model
 class Form(db.Model):
@@ -39,6 +46,14 @@ def index():
                     email=email, date=date_obj, occupation=occupation)
         db.session.add(form)
         db.session.commit() # this add data to db
+        message_body = f"Thank you for your submission, {first_name}"
+        message = Message(subject="New form submission",
+                          sender=app.config["MAIL_USERNAME"],
+                          recipients=[email],
+                          body=message_body)
+        mail.send(message)
+
+        flash( f"{first_name},Your form was submitted successfully!", "success")
     return render_template("index.html")
 
 
